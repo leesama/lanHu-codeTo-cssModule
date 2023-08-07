@@ -16,7 +16,7 @@ const handleCopy = (e: ClipboardEvent) => {
     let newHtml = copyText.replace(regex, (match, classNamesString) => {
       const classNames = classNamesString.split(" ");
       if (classNames.length > 0) {
-        return `className={styles.["${classNames[0]}"]}`;
+        return `className={styles["${classNames[0]}"]}`;
       }
       return match;
     });
