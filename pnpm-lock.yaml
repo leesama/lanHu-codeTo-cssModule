@@ -5,6 +5,12 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@dmuy/toast':
+    specifier: ^2.0.4
+    version: 2.0.4
+  '@types/toastify-js':
+    specifier: ^1.12.0
+    version: 1.12.0
   lodash:
     specifier: ^4.17.21
     version: 4.17.21
@@ -24,6 +30,10 @@ devDependencies:
     version: 3.4.0(vite@4.4.8)
 
 packages:
+
+  /@dmuy/toast@2.0.4:
+    resolution: {integrity: sha512-tHOd1gP6P3FkQgITwvJNfP95ryehV9nBXRpGlWxJ8cbleRkEkkg15hhuRPj86Gw1G6OhQ6zIKQtsqZHm4UBVnQ==}
+    dev: false
 
   /@esbuild/android-arm64@0.18.18:
     resolution: {integrity: sha512-dkAPYzRHq3dNXIzOyAknYOzsx8o3KWaNiuu56B2rP9IFPmFWMS58WQcTlUQi6iloku8ZyHHMluCe5sTWhKq/Yw==}
@@ -230,6 +240,10 @@ packages:
   /@types/lodash@4.14.196:
     resolution: {integrity: sha512-22y3o88f4a94mKljsZcanlNWPzO0uBsBdzLAngf2tp533LzZcQzb6+eZPJ+vCTt+bqF2XnvT9gejTLsAcJAJyQ==}
     dev: true
+
+  /@types/toastify-js@1.12.0:
+    resolution: {integrity: sha512-fqpDHaKhFukN9KRm24bbH0wozvHmSwjvkaLjBUrWcSfSS4zysIwTYqNLG3XbSNhRlsTNRNLGS23tp/VhPwsfHQ==}
+    dev: false
 
   /acorn-walk@8.2.0:
     resolution: {integrity: sha512-k+iyHEuPgSw6SbuDpGQM+06HQUa04DZ3o+F6CSzXMvvI5KMvnaEqXe+YVe555R9nn6GPt404fos4wcgpw12SDA==}

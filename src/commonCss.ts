@@ -1,4 +1,4 @@
-export default `.flex-col {
+const commonCss = `.flex-col {
   display: flex;
   flex-direction: column;
 }
@@ -44,3 +44,17 @@ export default `.flex-col {
   align-items: flex-end;
 }
 `;
+const commonCssObj: Record<string, string> = {};
+const regex = /\.([a-zA-Z0-9_-]+)\s*\{([\s\S]*?)\}/g;
+let match;
+while ((match = regex.exec(commonCss))) {
+  const className = match[1];
+  const css = match[2];
+  commonCssObj[className] = css.replace(/^\s+/, " ");
+}
+
+export const commonCssProperty = `
+ box-sizing: border-box;
+ flex-shrink: 0;
+`;
+export default commonCssObj;
