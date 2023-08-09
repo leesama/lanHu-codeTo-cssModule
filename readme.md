@@ -4,8 +4,6 @@
 
 [English](README_EN.md) | 中文
 
-![插件预览图](public/preview.png)
-
 ## 项目简介
 
 Lanhu-Code-To-CssModule 是一个油猴插件，旨在在蓝湖设计稿页面中拦截用户复制的代码，并将其重新组装成适用于 CSS Module 格式。借助该插件，您可以将蓝湖设计稿中的样式代码转换为更适用于前端项目的模块化样式，从而加速样式的应用过程。
@@ -38,4 +36,4 @@ Lanhu-Code-To-CssModule 是一个油猴插件，旨在在蓝湖设计稿页面�
 
 ## 油猴插件地址
 
-您可以在 [此处](https://greasyfork.org/zh-CN/scripts/your-script-id) 找到 Lanhu-Code-To-CssModule 油猴插件。
+您可以在 [此处](https://greasyfork.org/zh-CN/scripts/472753-lanhu-codeto-cssmodule) 找到 Lanhu-Code-To-CssModule 油猴插件。
