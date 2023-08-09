@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "jest --collectCoverage"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.196",
