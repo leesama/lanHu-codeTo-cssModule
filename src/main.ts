@@ -1,6 +1,5 @@
 // @ts-ignore
 import mdtoast from "@dmuy/toast";
-import { throttle } from "lodash";
 import { isCSS, isHTML } from "./utils";
 import commonCSSObj, { commonCssProperty } from "./commonCss";
 import "@dmuy/toast/dist/mdtoast.css";
