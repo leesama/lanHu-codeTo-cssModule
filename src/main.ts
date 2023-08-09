@@ -40,7 +40,7 @@ const handleCopy = (e: ClipboardEvent) => {
     }
     // 通过正则匹配css类名对应的内容
     const regex = /\.([a-zA-Z0-9_-]+)\s*\{([\s\S]*?)\}/g;
-    let newCss = copyText.replace(regex, (match, className, css) => {
+    let newCss = copyText.replace(regex, (_, className, css) => {
       if (classNamesObj![className]) {
         let cssStr = "";
         classNamesObj![className].forEach((className) => {
