@@ -6,3 +6,14 @@ export function isHTML(str: string) {
 export function isCSS(str: string) {
   return /{[\s\S]*}/.test(str);
 }
+
+export function isReactCode(copyText: string) {
+  return copyText.includes("className");
+}
+
+export function getClassNameContentIfReactCode(className: string) {
+  return `className={styles["${className}"]}`;
+}
+export function getClassNameContentIfOtherCode(className: string) {
+  return `class="${className}"`;
+}

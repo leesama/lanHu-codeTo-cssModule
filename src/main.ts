@@ -1,6 +1,12 @@
 // @ts-ignore
 import mdtoast from "@dmuy/toast";
-import { isCSS, isHTML } from "./utils";
+import {
+  getClassNameContentIfOtherCode,
+  getClassNameContentIfReactCode,
+  isCSS,
+  isHTML,
+  isReactCode,
+} from "./utils";
 import commonCSSObj, { commonCssProperty } from "./commonCss";
 import "@dmuy/toast/dist/mdtoast.css";
 let classNamesObj: Record<string, string[]> | null;
@@ -9,13 +15,24 @@ const handleCopy = (e: ClipboardEvent) => {
   // 阻止默认的复制行为
   e.preventDefault();
   const copyText = window.getSelection()!.toString();
+
   if (isHTML(copyText)) {
     classNamesObj = {};
-    const regex = /className\s*=\s*"([^"]+)"/g;
+    let regex: RegExp;
+    let getClassNameContent: Function;
+    // react代码和其他代码处理方式不一样
+    if (isReactCode(copyText)) {
+      getClassNameContent = getClassNameContentIfReactCode;
+      regex = /className\s*=\s*"([^"]+)"/g;
+    } else {
+      getClassNameContent = getClassNameContentIfOtherCode;
+      regex = /class\s*=\s*"([^"]+)"/g;
+    }
+
     let newHtml = copyText.replace(regex, (match, classNamesString) => {
       const classNames = classNamesString.split(" ");
       if (classNames.length > 0) {
-        return `className={styles["${classNames[0]}"]}`;
+        return getClassNameContent(classNames[0]);
       }
       return match;
     });
