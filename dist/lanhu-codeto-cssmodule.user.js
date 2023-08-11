@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         lanhu-codeto-cssmodule
 // @namespace    npm/vite-plugin-monkey
-// @version      0.0.0
+// @version      1.0.1
 // @author       monkey
 // @description  油猴插件，旨在在蓝湖设计稿页面中拦截用户复制的代码，并将其重新组装成适用于 CSS Module 格式。借助该插件，您可以将蓝湖设计稿中的样式代码转换为更适用于前端项目的模块化样式，从而加速样式的应用过程
 // @license      MIT
@@ -898,6 +898,15 @@
   function isCSS(str) {
     return /{[\s\S]*}/.test(str);
   }
+  function isReactCode(copyText) {
+    return copyText.includes("className");
+  }
+  function getClassNameContentIfReactCode(className) {
+    return `className={styles["${className}"]}`;
+  }
+  function getClassNameContentIfOtherCode(className) {
+    return `class="${className}"`;
+  }
   const commonCss = `.flex-col {
   display: flex;
   flex-direction: column;
@@ -962,11 +971,19 @@
     const copyText = window.getSelection().toString();
     if (isHTML(copyText)) {
       classNamesObj = {};
-      const regex2 = /className\s*=\s*"([^"]+)"/g;
+      let regex2;
+      let getClassNameContent;
+      if (isReactCode(copyText)) {
+        getClassNameContent = getClassNameContentIfReactCode;
+        regex2 = /className\s*=\s*"([^"]+)"/g;
+      } else {
+        getClassNameContent = getClassNameContentIfOtherCode;
+        regex2 = /class\s*=\s*"([^"]+)"/g;
+      }
       let newHtml = copyText.replace(regex2, (match22, classNamesString) => {
         const classNames = classNamesString.split(" ");
         if (classNames.length > 0) {
-          return `className={styles["${classNames[0]}"]}`;
+          return getClassNameContent(classNames[0]);
         }
         return match22;
       });
