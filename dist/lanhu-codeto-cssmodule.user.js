@@ -1,15 +1,16 @@
 // ==UserScript==
 // @name         lanhu-codeto-cssmodule
 // @namespace    npm/vite-plugin-monkey
-// @version      1.0.1
+// @version      1.0.2
 // @author       monkey
 // @description  油猴插件，旨在在蓝湖设计稿页面中拦截用户复制的代码，并将其重新组装成适用于 CSS Module 格式。借助该插件，您可以将蓝湖设计稿中的样式代码转换为更适用于前端项目的模块化样式，从而加速样式的应用过程
 // @license      MIT
 // @icon         https://vitejs.dev/logo.svg
 // @match        https://dds.lanhuapp.com/
+// @grant        GM_addStyle
 // ==/UserScript==
 
-(o=>{const t=document.createElement("style");t.dataset.source="vite-plugin-monkey",t.textContent=o,document.head.append(t)})(` @import"https://fonts.googleapis.com/css?family=Roboto:400,500";/*!Don't remove this!
+(t=>{if(typeof GM_addStyle=="function"){GM_addStyle(t);return}const o=document.createElement("style");o.textContent=t,document.head.append(o)})(` @import"https://fonts.googleapis.com/css?family=Roboto:400,500";/*!Don't remove this!
  * Material-Toast plugin styles
  * 
  * Author: Dionlee Uy
@@ -907,6 +908,37 @@
   function getClassNameContentIfOtherCode(className) {
     return `class="${className}"`;
   }
+  function log(...args) {
+    console.log(
+      "%cUserscript (React Mode):",
+      "color: purple; font-weight: bold",
+      ...args
+    );
+  }
+  async function awaitElement(selector) {
+    const MAX_TRIES = 60;
+    let tries = 0;
+    return new Promise((resolve, reject) => {
+      function probe() {
+        tries++;
+        return document.querySelector(selector);
+      }
+      function delayedProbe() {
+        if (tries >= MAX_TRIES) {
+          log("Can't find element with selector", selector);
+          reject();
+          return;
+        }
+        const elm = probe();
+        if (elm) {
+          resolve(elm);
+          return;
+        }
+        window.setTimeout(delayedProbe, 250);
+      }
+      delayedProbe();
+    });
+  }
   const commonCss = `.flex-col {
   display: flex;
   flex-direction: column;
@@ -965,63 +997,120 @@
  box-sizing: border-box;
  flex-shrink: 0;
 `;
+  const taroTagMap = {
+    div: "View",
+    span: "Text",
+    img: "Image",
+    button: "View"
+  };
   let classNamesObj;
+  const handleHtmlContent = (html, isReact) => {
+    const getClassNameContent = isReact ? getClassNameContentIfReactCode : getClassNameContentIfOtherCode;
+    const regex2 = isReact ? /className\s*=\s*"([^"]+)"/g : /class\s*=\s*"([^"]+)"/g;
+    let processedHtml = html;
+    processedHtml = replaceTags(processedHtml);
+    processedHtml = replaceClassNamesAndCollect(processedHtml, regex2, getClassNameContent);
+    return processedHtml;
+  };
+  const replaceTags = (html) => {
+    const isTaroMode = localStorage.getItem("isTaroMode") === "true";
+    if (!isTaroMode)
+      return html;
+    return html.replace(/<\/*([a-zA-Z0-9]+)(\s|>)/g, (match2, tag, followingChar) => {
+      const taroTag = taroTagMap[tag];
+      return taroTag ? `<${match2.startsWith("</") ? "/" : ""}${taroTag}${followingChar}` : match2;
+    });
+  };
+  const replaceClassNamesAndCollect = (html, regex2, getClassNameContent) => {
+    return html.replace(regex2, (match2, classNamesString) => {
+      const classNames = classNamesString.split(" ");
+      if (classNames.length > 0) {
+        classNamesObj[classNames[0]] = classNames.slice(1);
+        return getClassNameContent(classNames[0]);
+      }
+      return match2;
+    });
+  };
+  const handleCssContent = (css) => {
+    if (!classNamesObj) {
+      mdtoast$1("请先复制节点代码！", { duration: 500, position: "top right" });
+      return css;
+    }
+    const regex2 = /\.([a-zA-Z0-9_-]+)\s*\{([\s\S]*?)\}/g;
+    return css.replace(regex2, (_, className, cssContent) => {
+      var _a;
+      const additionalCssArray = ((_a = classNamesObj[className]) == null ? void 0 : _a.map((cn) => commonCssObj[cn])) || [];
+      const additionalCss = additionalCssArray.join(" ");
+      return `.${className} { ${cssContent} ${additionalCss} ${commonCssProperty} }
+`;
+    });
+  };
   const handleCopy = (e) => {
     e.preventDefault();
     const copyText = window.getSelection().toString();
     if (isHTML(copyText)) {
       classNamesObj = {};
-      let regex2;
-      let getClassNameContent;
-      if (isReactCode(copyText)) {
-        getClassNameContent = getClassNameContentIfReactCode;
-        regex2 = /className\s*=\s*"([^"]+)"/g;
-      } else {
-        getClassNameContent = getClassNameContentIfOtherCode;
-        regex2 = /class\s*=\s*"([^"]+)"/g;
-      }
-      let newHtml = copyText.replace(regex2, (match22, classNamesString) => {
-        const classNames = classNamesString.split(" ");
-        if (classNames.length > 0) {
-          return getClassNameContent(classNames[0]);
-        }
-        return match22;
-      });
-      let match2;
-      while (match2 = regex2.exec(copyText)) {
-        const classNamesString = match2[1];
-        const classNames = classNamesString.split(" ");
-        if (classNames.length > 1) {
-          classNamesObj[classNames[0]] = classNames.slice(1);
-        }
-      }
+      const isReact = isReactCode(copyText);
+      const newHtml = handleHtmlContent(copyText, isReact);
       e.clipboardData.setData("text/plain", newHtml);
-      return;
     } else if (isCSS(copyText)) {
-      if (!classNamesObj) {
-        mdtoast$1("请先复制节点代码！", {
-          duration: 500,
-          position: "top right"
-        });
-        return;
-      }
-      const regex2 = /\.([a-zA-Z0-9_-]+)\s*\{([\s\S]*?)\}/g;
-      let newCss = copyText.replace(regex2, (_, className, css) => {
-        if (classNamesObj[className]) {
-          let cssStr = "";
-          classNamesObj[className].forEach((className2) => {
-            cssStr += `${commonCssObj[className2]}`;
-          });
-          return `.${className} { ${css} ${commonCssProperty} ${cssStr}}
-`;
-        } else {
-          return `.${className} { ${css} ${commonCssProperty}}
-`;
-        }
-      });
+      const newCss = handleCssContent(copyText);
       e.clipboardData.setData("text/plain", newCss);
     }
   };
   document.addEventListener("copy", handleCopy);
+  function setTaroModeOnStyle(button) {
+    button.innerText = "关闭Taro模式";
+    button.style.cssText = `
+    box-sizing: border-box;
+    border: 2px solid #63C3DE;
+    border-radius: 49px;
+    background-color:#63C3DE;
+    border-radius: 38px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding:10px 20px;
+  `;
+  }
+  function setTaroModeOffStyle(button) {
+    button.innerText = "开启Taro模式";
+    button.style.cssText = `
+    box-sizing: border-box;
+    border: 2px solid #63C3DE;
+    border-radius: 49px;
+    background-color: #fff;
+    border-radius: 38px;
+    color: #63C3DE;
+    display: flex;
+    flex-direction: column;
+   padding:10px 20px;
+  `;
+  }
+  function createButton() {
+    const button = document.createElement("button");
+    const isTaroMode = localStorage.getItem("isTaroMode") === "true";
+    if (isTaroMode) {
+      setTaroModeOnStyle(button);
+    } else {
+      setTaroModeOffStyle(button);
+    }
+    button.addEventListener("click", () => {
+      const isTaroMode2 = localStorage.getItem("isTaroMode") === "true";
+      localStorage.setItem("isTaroMode", isTaroMode2 ? "false" : "true");
+      if (isTaroMode2) {
+        setTaroModeOffStyle(button);
+      } else {
+        setTaroModeOnStyle(button);
+      }
+    });
+    return button;
+  }
+  async function addButtonToCodeTitle() {
+    const codeTitle = await awaitElement(".code-title");
+    const button = createButton();
+    codeTitle.insertBefore(button, codeTitle.children[1]);
+  }
+  addButtonToCodeTitle();
 
 })();
